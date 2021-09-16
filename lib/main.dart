@@ -1,4 +1,7 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:kraken_test/conf_room.dart';
 
 void main() {
@@ -30,6 +33,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   TextEditingController _controller = TextEditingController();
+  TextEditingController _ipcontroller = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,11 +67,27 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
+            Text(
+              'Enter Server IP.',
+            ),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: TextField(
+                controller: _ipcontroller,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: Colors.grey,
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+            ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) =>
-                        ConferenceRoom(username: _controller.text.trim())));
+              onPressed: () async {
+                await _handleEnter();
               },
               child: Text("Enter Room"),
             ),
@@ -74,5 +95,41 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
+  }
+
+  _handleEnter() async {
+    String ipAddress = _ipcontroller.text.trim();
+    if (ipAddress.isEmpty) ipAddress = "192.168.1.6";
+    showLoading();
+    try {
+      final result = await post(
+        Uri.parse('http://$ipAddress:7000'),
+      );
+      log("RESULT : ${result.body}");
+    } catch (e) {
+      dismissLoading();
+      log("Exception : $e");
+      return;
+    }
+    dismissLoading();
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ConferenceRoom(
+          username: _controller.text.trim(),
+        ),
+      ),
+    );
+  }
+
+  showLoading() {
+    showDialog(
+      context: context,
+      builder: (context) => Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  dismissLoading() {
+    Navigator.of(context).pop();
   }
 }
