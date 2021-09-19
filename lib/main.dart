@@ -38,11 +38,14 @@ class _MyHomePageState extends State<MyHomePage> {
   TextEditingController _controller = TextEditingController();
   TextEditingController _ipcontroller = TextEditingController();
   TextEditingController _useridcontroller = TextEditingController();
+  TextEditingController _roomcontroller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     _controller.text = 'user1';
-    _ipcontroller.text = '192.168.0.107';
+    _ipcontroller.text = '67.205.136.63';
+    _roomcontroller.text = 'pokerclub';
+    //_ipcontroller.text = '192.168.0.107';
     _useridcontroller.text = '1';
     return Scaffold(
       appBar: AppBar(
@@ -110,6 +113,26 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
+
+            Text(
+              'Enter room name',
+            ),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: TextField(
+                controller: _roomcontroller,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: Colors.grey,
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
             ElevatedButton(
               onPressed: () async {
                 //await _handleEnter();
@@ -177,7 +200,7 @@ class _MyHomePageState extends State<MyHomePage> {
         builder: (_) => ConferenceRoom(
           ipAddress: _ipcontroller.text.trim(),
           username: _controller.text.trim(),
-          room: 'test',
+          room: _roomcontroller.text.trim(),
         ),
       ),
     );

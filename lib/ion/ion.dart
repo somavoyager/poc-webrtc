@@ -44,6 +44,9 @@ class Ion {
     final constraints = Constraints(audio: true, video: false);
     localStream = await ion.LocalStream.getUserMedia(constraints: constraints);
     await this.client!.publish(localStream!);
+
+    // localStream!.mute('audio');
+    // localStream!.unmute('audio');
     
     final participant = Participant(name: user);
     participant.me = true;
@@ -59,8 +62,11 @@ class Ion {
     if (remoteStream.id == user) {
       // continue
     }
+    // remoteStream.mute!.call('audio');
+    // remoteStream.unmute!.call('audio');
+
     final participant = Participant(name: remoteStream.id);
-    participant.ionStream = remoteStream;
+    participant.stream = remoteStream;
     participant.id = remoteStream.id;
     participants.add(participant);
     if (confChanged != null) {
@@ -81,19 +87,19 @@ class Ion {
     return participants.firstWhere((element) => element.name == user);
   }
 
-  void muteUser(String id) {
-    final user = getParticipant(id);
-    if (user?.ionStream.mute != null) {
-      user?.isMuted = true;
-      user?.ionStream.mute?.call('audio');
-    }
-  }
+  // void muteUser(String id) {
+  //   final user = getParticipant(id);
+  //   if (user?.mediaStream.mute != null) {
+  //     user?.isMuted = true;
+  //     user?.mediaStream.mute?.call('audio');
+  //   }
+  // }
 
-  void unmuteUser(String id) {
-    final user = getParticipant(id);
-    if (user?.ionStream.unmute != null) {
-      user?.isMuted = false;
-      user?.ionStream.unmute?.call('audio');
-    }
-  }
+  // void unmuteUser(String id) {
+  //   final user = getParticipant(id);
+  //   if (user?.ionStream.unmute != null) {
+  //     user?.isMuted = false;
+  //     user?.ionStream.unmute?.call('audio');
+  //   }
+  // }
 }

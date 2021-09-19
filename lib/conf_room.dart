@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:kraken_test/ion/ion.dart';
 import 'package:kraken_test/participant.dart';
 
+import 'ion/ion2.dart';
+
 class ConferenceRoom extends StatefulWidget {
   final String ipAddress;
   final String username;
@@ -18,6 +20,7 @@ class _ConferenceRoomState extends State<ConferenceRoom> {
   bool joining = true;
   bool _allMuted = false;
   late Ion ion;
+  late Ion2 ion2;
   List<Participant> list = [];
   // List<Participant> list = [
   //   Participant(
@@ -45,48 +48,61 @@ class _ConferenceRoomState extends State<ConferenceRoom> {
   void confChanged() {
     log('Conference is changed');
     list = [];
-    for(final p in ion.participants) {
+    for(final p in ion2.participants) {
       list.add(p);
     }
   }
 
   @override
   void dispose() {
-    ion.close();
+    //ion.close();
+    ion2.close();
     super.dispose();
   }
 
   @override
   void initState() {
     joining = true;
-    ion = Ion(widget.ipAddress, confChanged: confChanged);
-    ion.connect();
-    ion.join(widget.room, widget.username).then((v)  {
+    
+    // ion = Ion(widget.ipAddress, confChanged: confChanged);
+    // ion.connect();
+    // ion.join(widget.room, widget.username).then((v)  {
+    //   log('Joined the audio conference');
+    //   joining = false;
+    //   for(final p in ion.participants) {
+    //     list.add(p);
+    //   }      
+    //   setState(() {
+        
+    //   });
+    // });
+    
+    Config.host = widget.ipAddress;
+    ion2 = Ion2();
+    ion2.onConfChange = this.confChanged;
+    ion2.init();
+    ion2.join(widget.room, widget.username).then((v)  {
       log('Joined the audio conference');
-      joining = false;
-      for(final p in ion.participants) {
+      for(final p in ion2.participants) {
         list.add(p);
       }      
+      joining = false;
       setState(() {
-        
       });
     });
-    
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (joining) {
-      return CircularProgressIndicator();
-    }
-
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
           title: Text("Conference Room"),
         ),
-        body: _buildListOfParticipants(context),
+        body: 
+        joining? Center(child: CircularProgressIndicator())
+        : _buildListOfParticipants(context),
         floatingActionButton: FloatingActionButton(
             onPressed: () {
               _muteAll();
