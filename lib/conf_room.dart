@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:kraken_test/kraken/kraken.dart';
 
 class ConferenceRoom extends StatefulWidget {
   const ConferenceRoom({Key? key, String? username}) : super(key: key);
@@ -33,6 +34,23 @@ class _ConferenceRoomState extends State<ConferenceRoom> {
       name: "Daniel",
     ),
   ];
+
+  KrakenClient _client = KrakenClient("192.168.1.6");
+
+  @override
+  void initState() {
+    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+      _subScribeAllPlayers();
+    });
+    super.initState();
+  }
+
+  _subScribeAllPlayers() {
+    for (Participant p in list) {
+      _client.subscribe(
+          _client.join("room", p.name.toString(), int.parse(p.id.toString())));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

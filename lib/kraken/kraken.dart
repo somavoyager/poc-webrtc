@@ -3,11 +3,10 @@ import 'dart:developer';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:http/http.dart';
+
 final iceServers = [
   RTCIceServer(
-      url: "stun:stun2.l.google.com:19302",
-      username: "",
-      credential: "")
+      url: "stun:stun2.l.google.com:19302", username: "", credential: "")
 ];
 
 final defaultIceServer = {
@@ -16,10 +15,7 @@ final defaultIceServer = {
   "credential": "",
 };
 
-const constraints = {
-  'audio': true,
-  'video': false
-};
+const constraints = {'audio': true, 'video': false};
 
 var configuration = {
   'iceServers': [],
@@ -37,6 +33,9 @@ class KrakenClient {
   late String room;
   late String user;
   late int userId;
+
+  KrakenClient._();
+
   KrakenClient(String host) {
     url = Uri.parse('http://${host}:7000');
     pc = null;
@@ -46,9 +45,7 @@ class KrakenClient {
 
   Future<Map<String, dynamic>?> rpc(String method, dynamic params) async {
     try {
-      var headers = {
-        'Content-Type': 'application/json'
-      };
+      var headers = {'Content-Type': 'application/json'};
       var body = {
         'id': uuid.v1(),
         'method': method,
@@ -62,7 +59,7 @@ class KrakenClient {
       log('RPC method: ${method} params: ${jsonEncode(params)} Error: ${err.toString()}');
       return null;
     }
-  } 
+  }
 
   close() {
     pc!.close();
@@ -77,20 +74,20 @@ class KrakenClient {
       //   configuration['iceServers'] = servers['data'];
       // } else {
       // }
-      configuration['iceServers'] = [ defaultIceServer ];
+      configuration['iceServers'] = [defaultIceServer];
     } catch (err) {
       log('failed to get server ${err.toString}');
-      configuration['iceServers'] = [ defaultIceServer ];
+      configuration['iceServers'] = [defaultIceServer];
     }
     configuration.putIfAbsent('sdpSemantics', () => 'unified-plan');
     pc = await createPeerConnection(configuration, {});
     assert(pc != null);
 
-
     pc!.onTrack = (RTCTrackEvent event) async {
       log('RTC: Track: ${event.toString()}');
-        //if (event.streams == null || event.transceiver == null) return;
-      var mid = event.transceiver == null ? event.transceiver!.mid : event.track.id;
+      //if (event.streams == null || event.transceiver == null) return;
+      var mid =
+          event.transceiver == null ? event.transceiver!.mid : event.track.id;
       final stream = event.streams[0];
       final sid = stream.id;
       final toks = sid.split(':');
@@ -101,25 +98,25 @@ class KrakenClient {
         return;
       }
       if (event.track.onEnded == null) return;
-        // event.track.onEnded = () async {
-        //   if (webRTCHandle.remoteStream != null) {
-        //     webRTCHandle.remoteStream.removeTrack(event.track);
-        //     var mid = event.track.id;
-        //     var transceiver = (await peerConnection.transceivers)
-        //         .firstWhere((element) => element.receiver.track == event.track);
-        //     mid = transceiver.mid;
-        //     plugin.onRemoteTrack(event.streams[0], event.track, mid, false);
-        //   }
-        // };
-        event.track.onEnded = () async {
-          log('Track $name ended');
-        };
-        event.track.onMute = () async {
-          log('Track $name muted');
-          // handle on mute
-          // remove the track
-        };
+      // event.track.onEnded = () async {
+      //   if (webRTCHandle.remoteStream != null) {
+      //     webRTCHandle.remoteStream.removeTrack(event.track);
+      //     var mid = event.track.id;
+      //     var transceiver = (await peerConnection.transceivers)
+      //         .firstWhere((element) => element.receiver.track == event.track);
+      //     mid = transceiver.mid;
+      //     plugin.onRemoteTrack(event.streams[0], event.track, mid, false);
+      //   }
+      // };
+      event.track.onEnded = () async {
+        log('Track $name ended');
       };
+      event.track.onMute = () async {
+        log('Track $name muted');
+        // handle on mute
+        // remove the track
+      };
+    };
     pc!.onConnectionState = (state) {
       log('RTC: Connection state: ${state.toString()}');
     };
@@ -147,28 +144,26 @@ class KrakenClient {
     //   //pc!.addTrack(track, localStream);
     // }
     addTracks(audioTrack);
-    final offer = await pc!.createOffer({
-      'audio': true,
-      'video': false
-    });
+    final offer = await pc!.createOffer({'audio': true, 'video': false});
     await pc!.setLocalDescription(offer);
     final localDesc = await pc!.getLocalDescription();
     final localDescMap = jsonEncode(localDesc!.toMap());
     log('RTC: publishing user media local: ${localDescMap}');
     final res = await rpc('publish', [room, user, localDescMap]);
     log('RTC: publishing user media done');
-    
+
     log('publish result: ${res.toString()}');
     this.room = room;
     this.user = user;
     this.userId = userId;
-    if (res!.containsKey('data')) { 
+    if (res!.containsKey('data')) {
       // restart connection
       final String jesp = res['data']['jsep'];
-      if(res['data']['sdp']['type'] == 'answer') {
+      if (res['data']['sdp']['type'] == 'answer') {
         final sdp = res['data']['sdp']['sdp'];
         final type = res['data']['sdp']['type'];
-        RTCSessionDescription sessionDescription = RTCSessionDescription(sdp, type);
+        RTCSessionDescription sessionDescription =
+            RTCSessionDescription(sdp, type);
         await pc!.setRemoteDescription(sessionDescription);
 
         ucid = res['data']['track'];
@@ -186,7 +181,7 @@ class KrakenClient {
   addTracks(MediaStreamTrack audioTrack) async {
     RTCRtpTransceiver? audioTransceiver;
     final transceivers = await pc!.transceivers;
-    for(final t in transceivers) {
+    for (final t in transceivers) {
       if (t.sender != null && t.receiver != null) {
         if (t.sender.track?.kind == 'audio' ||
             t.receiver.track?.kind == 'audio') {
@@ -200,15 +195,15 @@ class KrakenClient {
           track: audioTrack,
           kind: RTCRtpMediaType.RTCRtpMediaTypeAudio,
           init: RTCRtpTransceiverInit(
-              direction: TransceiverDirection.SendRecv,
-              streams: []));
+              direction: TransceiverDirection.SendRecv, streams: []));
     }
   }
 
-  subscribe (RTCPeerConnection pc) async {
+  subscribe(RTCPeerConnection pc) async {
     final res = await rpc('subscribe', [room, user, ucid]);
     if (res != null) {
       if (res.containsKey('error')) {
+        log("Trying to reconnect");
         // try to reconnect to the server
         Future.delayed(Duration(milliseconds: 3000), () {
           subscribe(pc);
@@ -218,12 +213,10 @@ class KrakenClient {
         final sdp = res['data']['sdp']['sdp'];
         final type = res['data']['sdp']['type'];
 
-        RTCSessionDescription sessionDescription = RTCSessionDescription(sdp, type);
+        RTCSessionDescription sessionDescription =
+            RTCSessionDescription(sdp, type);
         await pc.setRemoteDescription(sessionDescription);
-        final offer = await pc.createAnswer({
-          "audio": true,
-          "video": false
-        });
+        final offer = await pc.createAnswer({"audio": true, "video": false});
         await pc.setLocalDescription(offer);
         await rpc('answer', [room, user, ucid, jsonEncode(offer.toMap())]);
       } else {
@@ -231,10 +224,9 @@ class KrakenClient {
         //   subscribe(pc);
         // });
       }
-    } 
+    }
   }
 }
-
 
 class RTCIceServer {
   String username;

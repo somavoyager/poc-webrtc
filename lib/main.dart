@@ -36,13 +36,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   TextEditingController _controller = TextEditingController();
-  TextEditingController _ipcontroller = TextEditingController();
+  TextEditingController _ipcontroller = TextEditingController(text: "192.168.1.6");
   TextEditingController _useridcontroller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     _controller.text = 'user1';
-    _ipcontroller.text = '192.168.0.107';
+    // _ipcontroller.text = '192.168.0.107';
     _useridcontroller.text = '1';
     return Scaffold(
       appBar: AppBar(
@@ -91,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               ),
-            ),            
+            ),
             Text(
               'Enter Server IP.',
             ),
@@ -124,7 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _handleEnter() async {
     String ipAddress = _ipcontroller.text.trim();
-    if (ipAddress.isEmpty) ipAddress = "192.168.0.107";
+    if (ipAddress.isEmpty) ipAddress = "192.168.1.6";
     showLoading();
     try {
       // final result = await post(
