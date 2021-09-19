@@ -37,6 +37,7 @@ class KrakenClient {
   late String room;
   late String user;
   late int userId;
+  late Map<String, dynamic> trickleMap;
   KrakenClient(String host) {
     url = Uri.parse('http://${host}:7000');
     pc = null;
@@ -71,13 +72,13 @@ class KrakenClient {
   join(String room, String user, int userId) async {
     Map<String, dynamic> configuration = Map<String, dynamic>();
     try {
-      // var params = [user];
-      // //var servers = await rpc('turn', params);
-      // if (servers['data'] != null) {
-      //   configuration['iceServers'] = servers['data'];
-      // } else {
-      // }
-      configuration['iceServers'] = [ defaultIceServer ];
+      var params = [user];
+      final servers = await rpc('turn', params);
+      if (servers?['data'] != null) {
+        configuration['iceServers'] = servers?['data'];
+      } else {
+      }
+      //configuration['iceServers'] = [ defaultIceServer ];
     } catch (err) {
       log('failed to get server ${err.toString}');
       configuration['iceServers'] = [ defaultIceServer ];
@@ -85,7 +86,7 @@ class KrakenClient {
     configuration.putIfAbsent('sdpSemantics', () => 'unified-plan');
     pc = await createPeerConnection(configuration, {});
     assert(pc != null);
-
+    log('RTC: created peer connection');
 
     pc!.onTrack = (RTCTrackEvent event) async {
       log('RTC: Track: ${event.toString()}');
@@ -101,16 +102,6 @@ class KrakenClient {
         return;
       }
       if (event.track.onEnded == null) return;
-        // event.track.onEnded = () async {
-        //   if (webRTCHandle.remoteStream != null) {
-        //     webRTCHandle.remoteStream.removeTrack(event.track);
-        //     var mid = event.track.id;
-        //     var transceiver = (await peerConnection.transceivers)
-        //         .firstWhere((element) => element.receiver.track == event.track);
-        //     mid = transceiver.mid;
-        //     plugin.onRemoteTrack(event.streams[0], event.track, mid, false);
-        //   }
-        // };
         event.track.onEnded = () async {
           log('Track $name ended');
         };
@@ -127,6 +118,7 @@ class KrakenClient {
     pc!.onIceCandidate = (RTCIceCandidate candidate) async {
       log('RTC: onIceCandidate start ucid: $ucid');
       final candidateMap = candidate.toMap();
+      trickleMap = candidateMap;
       final json = jsonEncode(candidateMap);
       if (ucid == '') {
         log('***** trickle track id is not found');
@@ -142,10 +134,10 @@ class KrakenClient {
     final localStream = await navigator.mediaDevices.getUserMedia(constraints);
     late MediaStreamTrack audioTrack;
     audioTrack = localStream.getAudioTracks()[0];
-    // for(final track in localStream.getTracks()) {
-    //   audioTrack = track;
-    //   //pc!.addTrack(track, localStream);
-    // }
+    for(final track in localStream.getTracks()) {
+      audioTrack = track;
+      //pc!.addTrack(track, localStream);
+    }
     addTracks(audioTrack);
     final offer = await pc!.createOffer({
       'audio': true,
@@ -157,8 +149,8 @@ class KrakenClient {
     log('RTC: publishing user media local: ${localDescMap}');
     final res = await rpc('publish', [room, user, localDescMap]);
     log('RTC: publishing user media done');
-    
     log('publish result: ${res.toString()}');
+
     this.room = room;
     this.user = user;
     this.userId = userId;
@@ -172,6 +164,12 @@ class KrakenClient {
         await pc!.setRemoteDescription(sessionDescription);
 
         ucid = res['data']['track'];
+        addTracks(audioTrack);
+        log('RTC: media is attached');
+
+        final json = jsonEncode(trickleMap);
+        final result = await rpc('trickle', [room, user, ucid, json]);
+        log('RTC: trickle response: ${jsonEncode(result)}');
 
         // restart the connection
         // final restartRes = await rpc('restart', [room, user, ucid, jesp]);

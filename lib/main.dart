@@ -5,7 +5,7 @@ import 'package:http/http.dart';
 import 'package:kraken_test/conf_room.dart';
 import 'package:kraken_test/kraken/kraken.dart';
 
-late KrakenClient client;
+// late KrakenClient client;
 
 void main() {
   runApp(MyApp());
@@ -112,7 +112,8 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                await _handleEnter();
+                //await _handleEnter();
+                await _handleIonEnter();
               },
               child: Text("Enter Room"),
             ),
@@ -122,29 +123,61 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  _handleEnter() async {
+  // _handleKrakenEnter() async {
+  //   String ipAddress = _ipcontroller.text.trim();
+  //   if (ipAddress.isEmpty) ipAddress = "192.168.0.107";
+  //   showLoading();
+  //   try {
+  //     // final result = await post(
+  //     //   Uri.parse('http://$ipAddress:7000'),
+  //     // );
+  //     // log("RESULT : ${result.body}");
+  //     client = KrakenClient(ipAddress);
+  //     final userId = int.parse(_useridcontroller.text.trim());
+  //     client.join('test', _controller.text.trim(), userId);
+  //   } catch (e) {
+  //     dismissLoading();
+  //     log("Exception : $e");
+  //     return;
+  //   }
+  //   dismissLoading();
+
+  //   // Navigator.of(context).push(
+  //   //   MaterialPageRoute(
+  //   //     builder: (_) => ConferenceRoom(
+  //   //       username: _controller.text.trim(),
+  //   //     ),
+  //   //   ),
+  //   // );
+  // }
+
+
+
+  _handleIonEnter() async {
     String ipAddress = _ipcontroller.text.trim();
     if (ipAddress.isEmpty) ipAddress = "192.168.0.107";
-    showLoading();
-    try {
-      // final result = await post(
-      //   Uri.parse('http://$ipAddress:7000'),
-      // );
-      // log("RESULT : ${result.body}");
-      client = KrakenClient(ipAddress);
-      final userId = int.parse(_useridcontroller.text.trim());
-      client.join('test', _controller.text.trim(), userId);
-    } catch (e) {
-      dismissLoading();
-      log("Exception : $e");
-      return;
-    }
-    dismissLoading();
+    // showLoading();
+    // try {
+    //   // final result = await post(
+    //   //   Uri.parse('http://$ipAddress:7000'),
+    //   // );
+    //   // log("RESULT : ${result.body}");
+    //   client = KrakenClient(ipAddress);
+    //   final userId = int.parse(_useridcontroller.text.trim());
+    //   client.join('test', _controller.text.trim(), userId);
+    // } catch (e) {
+    //   dismissLoading();
+    //   log("Exception : $e");
+    //   return;
+    // }
+    // dismissLoading();
 
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ConferenceRoom(
+          ipAddress: _ipcontroller.text.trim(),
           username: _controller.text.trim(),
+          room: 'test',
         ),
       ),
     );

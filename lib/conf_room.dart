@@ -1,41 +1,86 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:kraken_test/ion/ion.dart';
+import 'package:kraken_test/participant.dart';
 
 class ConferenceRoom extends StatefulWidget {
-  const ConferenceRoom({Key? key, String? username}) : super(key: key);
+  final String ipAddress;
+  final String username;
+  final String room;
+  const ConferenceRoom({Key? key, required this.ipAddress, required this.username, required this.room}) : super(key: key);
 
   @override
   _ConferenceRoomState createState() => _ConferenceRoomState();
 }
 
 class _ConferenceRoomState extends State<ConferenceRoom> {
+  bool joining = true;
   bool _allMuted = false;
-  List<Participant> list = [
-    Participant(
-      id: "1",
-      name: "Roger",
-    ),
-    Participant(
-      id: "2",
-      name: "Novak",
-    ),
-    Participant(
-      id: "3",
-      name: "Zverev",
-    ),
-    Participant(
-      id: "4",
-      name: "Rafael",
-    ),
-    Participant(
-      id: "5",
-      name: "Daniel",
-    ),
-  ];
+  late Ion ion;
+  List<Participant> list = [];
+  // List<Participant> list = [
+  //   Participant(
+  //     id: "1",
+  //     name: "Roger",
+  //   ),
+  //   Participant(
+  //     id: "2",
+  //     name: "Novak",
+  //   ),
+  //   Participant(
+  //     id: "3",
+  //     name: "Zverev",
+  //   ),
+  //   Participant(
+  //     id: "4",
+  //     name: "Rafael",
+  //   ),
+  //   Participant(
+  //     id: "5",
+  //     name: "Daniel",
+  //   ),
+  // ];
+
+  void confChanged() {
+    log('Conference is changed');
+    list = [];
+    for(final p in ion.participants) {
+      list.add(p);
+    }
+  }
+
+  @override
+  void dispose() {
+    ion.close();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    joining = true;
+    ion = Ion(widget.ipAddress, confChanged: confChanged);
+    ion.connect();
+    ion.join(widget.room, widget.username).then((v)  {
+      log('Joined the audio conference');
+      joining = false;
+      for(final p in ion.participants) {
+        list.add(p);
+      }      
+      setState(() {
+        
+      });
+    });
+    
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (joining) {
+      return CircularProgressIndicator();
+    }
+
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -121,18 +166,3 @@ class _ConferenceRoomState extends State<ConferenceRoom> {
   }
 }
 
-class Participant {
-  String? name;
-  String? id;
-  bool? isMuted;
-  bool? isTalking;
-  bool? isSelfMute;
-
-  Participant({
-    this.name,
-    this.id,
-    this.isMuted = false,
-    this.isTalking = false,
-    this.isSelfMute = false,
-  });
-}
