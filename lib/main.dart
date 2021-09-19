@@ -3,6 +3,9 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:kraken_test/conf_room.dart';
+import 'package:kraken_test/kraken/kraken.dart';
+
+late KrakenClient client;
 
 void main() {
   runApp(MyApp());
@@ -34,9 +37,13 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   TextEditingController _controller = TextEditingController();
   TextEditingController _ipcontroller = TextEditingController();
+  TextEditingController _useridcontroller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    _controller.text = 'user1';
+    _ipcontroller.text = '192.168.0.107';
+    _useridcontroller.text = '1';
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -67,6 +74,24 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
+            Text(
+              'Enter user id (number)',
+            ),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: TextField(
+                controller: _useridcontroller,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: Colors.grey,
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+            ),            
             Text(
               'Enter Server IP.',
             ),
@@ -99,13 +124,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _handleEnter() async {
     String ipAddress = _ipcontroller.text.trim();
-    if (ipAddress.isEmpty) ipAddress = "192.168.1.6";
+    if (ipAddress.isEmpty) ipAddress = "192.168.0.107";
     showLoading();
     try {
-      final result = await post(
-        Uri.parse('http://$ipAddress:7000'),
-      );
-      log("RESULT : ${result.body}");
+      // final result = await post(
+      //   Uri.parse('http://$ipAddress:7000'),
+      // );
+      // log("RESULT : ${result.body}");
+      client = KrakenClient(ipAddress);
+      final userId = int.parse(_useridcontroller.text.trim());
+      client.join('test', _controller.text.trim(), userId);
     } catch (e) {
       dismissLoading();
       log("Exception : $e");
